@@ -1,0 +1,58 @@
+*.class
+target
+.classpath
+.project
+/bin/
+/build/
+.settings/
+*.DS_Store
+src/main/resources/ERD.mwb.bak
+*.prefs
+CN-files/*
+CN-files-until-28-08-2018/*
+*.bak
+
+### Gradle template
+.gradle
+build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
+
+# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
+
+### vim
+*.swp
+
+### intellij
+/.idea
+
+### output files
+/out
+
+### local property files
+/resources/CommunicationNetwork.properties
+/resources/db2.properties
+/resources/tokens.txt
+/resources/tokens2.txt
+/resources/systems_urls_large_projects.txt
+/resources/4cnetwork.sql
+/resources/systems_urls_medium.txt
+/resources/systems_popular_projects_15000stars.txt
+/resources/tokens1.txt
+/resources/tokens3.txt
+/resources/tokens4.txt
+/resources/TEST.sql
+/resources/test.properties
+/resources/issue_systems1.txt
+/resources/issue_systems2.txt
+/resources/issue_systems3.txt
+/resources/issue_systems4.txt
+/resources/mergeCommits.txt

@@ -1,0 +1,3 @@
+rootProject.name = 'CommunicationNetwork'
+includeFlat 'GitWrapper'
+includeFlat 'GitHubWrapper'
