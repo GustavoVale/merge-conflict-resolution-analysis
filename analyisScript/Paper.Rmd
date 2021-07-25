@@ -1,0 +1,323 @@
+---
+title: "Challenges of Resolving Merge Conflicts: A Mining and Survey Study - Online Appendix"
+author: "Suppressed"
+date: "July 25, 2021"
+output:
+  html_document:
+    toc: yes
+  word_document: default
+  pdf_document:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+# Context
+
+This document presents supplementary information regarding the paper "Challenges of Resolving Merge Conflicts: A Mining and Survey Study" submitted to the Transactions on Software Engineering Journal. It has been generated based on a `Rmarkdown` file, `Paper.Rmd`, which contains all the code that is necessary to replicate our results. When put in the same directory as the `csv` file `InvestigatedMetrics.csv`, it can be generated via `rmarkdown` in `RStudio`. For reproducibility, this document contains information on which package versions have been used at the end of this document. 
+
+```{r results = 'hide', warning=FALSE, message=FALSE, echo=FALSE}
+packages <- c('DBI', 'ggplot2', 'foreign', 'MASS', 'DescTools', 'plyr', 'lmtest', 'knitr', 'tree', 'FactorMineR', 'factoextra', 'ppcor')
+
+library('ggplot2') # For plotting 
+library('knitr') # For markdown: e.g. for generation of matrices in HTML
+library('FactoMineR') # For PCA analysis
+library('ppcor')
+library('sjstats')
+library('gridExtra')
+
+set.seed(123)
+```
+
+In the following lines, some transformations of the data types are implemented. Make the map from the ids in the table with the ids of `projects-overview.md`.
+
+```{r fig.height=3}
+DAT     <- read.csv("InvestigatedMetrics.csv", row.names = 1, header = TRUE)
+
+clean.fun <- function(x){
+  
+  # Correct spelling of variable name project_id if necessary
+  if('pr_id' %in% names(x)) names(x)[names(x) == 'pr_id'] <- 'Project_id'
+  
+  x$Project_id              <- as.factor(x$Project_id)
+  x$merge.time.diff         <- as.numeric(x$merge.time.diff)
+
+  return(x)
+}
+
+DAT     <- clean.fun(DAT)
+
+```
+```{r echo = FALSE}
+# How many rows, i.e. merge scenarios, per project?
+conf_ms_per_prj <- c(unlist(by(DAT,DAT$Project_id,nrow)))
+conf_ms_per_prj <- t(as.matrix(conf_ms_per_prj))
+rownames(conf_ms_per_prj) <- c('No_conf_scenarios')
+#final_df <- as.data.frame(t(conf_ms_per_prj))
+#kable(final_df, caption = 'Number of conflicting merge scenarios per project')
+kable(conf_ms_per_prj, caption = 'Number of conflicting merge scenarios per project')
+```
+
+# Method and procedure 
+
+## Distribution of covariates
+
+The covariates we use are count data. Instead of a Pearson correlation, we therefore use a Spearman rank correlation. Computing a Spearman correlation is similar to doing a rank transformation and then computing a Pearson correlation (the code shows that the results are identical).
+
+For checking the robustness of our findings with regard to outliers, uncomment the following lines in the `Rmd` to keep only the lower 99% quantiles of `conflicts`.
+
+As a next step, we rename the variables to plot them in Boxplots and thereby visualize the data distribution. The code can be found in the `Rmd` file. 
+
+```{r fig.height=3, echo=FALSE}
+
+# Renaming variables for plotting
+
+renaming.fun <- function(DAT, integrator.knew, merge.time.diff){
+            colnames(DAT)[colnames(DAT) == integrator.knew] <- "%IntegratorKnowledge"
+            colnames(DAT)[colnames(DAT) == merge.time.diff] <- "#SecondsToMerge"
+            colnames(DAT)[colnames(DAT)=="files"] <- "#Files"
+            colnames(DAT)[colnames(DAT)=="confFiles"] <- "#ConfFiles"
+            colnames(DAT)[colnames(DAT)=="chunks"] <- "#Chunks"
+            colnames(DAT)[colnames(DAT)=="confChunks"] <- "#ConfChunks"
+            colnames(DAT)[colnames(DAT)=="devs"] <- "#Devs"
+            colnames(DAT)[colnames(DAT)=="code_churn"] <- "#LoC"
+            colnames(DAT)[colnames(DAT)=="confCodeChurn"] <- "#ConfLoC"
+            colnames(DAT)[colnames(DAT)=="complexity"] <- "CodeComplexity"
+            colnames(DAT)[colnames(DAT)=="formatting"] <- "%FormattingChanges"
+return(DAT)
+}
+
+DAT.rn <- renaming.fun(DAT, 'integrator.knew', 'merge.time.diff')
+
+# To better see the results, use the log
+
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#SecondsToMerge`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#Files`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#ConfFiles`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#Chunks`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#ConfChunks`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#Devs`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#LoC`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`#ConfLoC`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`CodeComplexity`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`%IntegratorKnowledge`)) + geom_boxplot() + scale_y_log10()
+ggplot(DAT.rn, aes(x=`Project_id`,y=`%FormattingChanges`)) + geom_boxplot() + scale_y_log10()
+
+```
+
+## Correlation 
+
+We start with a rank correlation of the number of conflicts and the number of communication events, using the Spearman rank-based correlation, which is invariant to any linear transformations of the covariates. 
+In order to be able to use the same logic of correlation calculation in later PCA and SEM steps, we do not use the "Spearman"-functionality of the `cor()`-function, but manually transform the original data to ranks, and then calculate the Spearman correlation.
+
+```{r echo=TRUE}
+
+# All metrics needed for the principal component analysis
+
+BIG.rn                 <- c("#Files", "#ConfFiles", "#Chunks", "#ConfChunks", "#Devs", "#LoC",
+                             "#ConfLoC", "CodeComplexity", "%IntegratorKnowledge", "%FormattingChanges", "#SecondsToMerge")
+big                    <- c("files", "confFiles", "chunks", "confChunks", "devs", "code_churn",
+                             "confCodeChurn", "complexity", "integrator.knew", "formatting")
+BIG                    <- c( big, "merge.time.diff")
+
+rank.transform  <- function(dat, big){
+  
+  r.dat       <- dat
+  r.dat[,big] <- sapply(dat[,big],rank)
+  return(r.dat)
+  
+}
+
+R.DAT.rn     <- rank.transform(DAT.rn, BIG.rn) 
+R.DAT        <- rank.transform(DAT, BIG)
+
+```
+
+
+```{r echo = FALSE}
+# function to print correlation matrices: 
+
+kable.cor <- function(r.dat, big, cap){
+  cor.dat <- round(cor(r.dat[,big], method = 'pearson'), 3)
+  cor.dat[upper.tri(cor.dat)] <- ''
+  return(kable(cor.dat, caption = cap))
+}
+
+kable.cor(R.DAT.rn, BIG.rn, 'DAT: Rank correlation matrix' )
+
+```
+
+```{r echo = FALSE}
+library(corrplot)
+library(ggcorrplot)
+
+correlations <- cor(R.DAT.rn[,2:12])
+corrplot(correlations, method="circle", tl.col = "#283747", type= "upper")
+#ggcorrplot(correlations, lab = TRUE, type = "upper", tl.col = "#283747")
+
+```
+
+The correlation computation is complemented by a hypothesis test for the core variables of interest i.e., `#Files`, `#ConfFiles`, `#Chunks`, `#ConfChunks`, `#Devs`, `#LoC`, `#ConfLoC`, `#CodeComplexity`, `%IntegratorKnowledge`, `%FormattingChanges`. 
+
+```{r}
+our.cor.test <- function(r.dat, com.measure){
+  result <- cor.test(r.dat[,"#SecondsToMerge"], r.dat[,com.measure], 
+                     alternative = "two.sided", method = "spearman", 
+                     exact = NULL, conf.level = 0.95, continuity = FALSE)
+  return(result)
+}
+
+# Number of Files:
+our.cor.test(R.DAT.rn, "#Files")
+
+# Number of conflicting Files:
+our.cor.test(R.DAT.rn, "#ConfFiles")
+
+# Number of Chunks:
+our.cor.test(R.DAT.rn, "#Chunks")
+
+# Number of conflicting Chunks:
+our.cor.test(R.DAT.rn, "#ConfChunks")
+
+# Number of Devs:
+our.cor.test(R.DAT.rn, "#Devs")
+
+# Number of lines of code:
+our.cor.test(R.DAT.rn, "#LoC")
+
+# Number of conflicting lines of code:
+our.cor.test(R.DAT.rn, "#ConfLoC")
+
+# Cyclomatic complexity:
+our.cor.test(R.DAT.rn, "CodeComplexity")
+
+# The percentage of knowledge of the integrator:
+our.cor.test(R.DAT.rn, "%IntegratorKnowledge")
+
+# The percentage of formatting changes:
+our.cor.test(R.DAT.rn, "%FormattingChanges")
+
+```
+
+A calculation of the correlation coefficient between `#Files`, `#ConfFiles`, `#Chunks`, `#ConfChunks`, `#Devs`, `#LoC`, `#ConfLoC`, `%IntegratorKnowledge` and `#SecondsToMerge` metrics suggests that there is a positive linear relationship between them. The only two metrics that do not have a significant correlation coefficient with `#SecondsToMerge` are: `CodeComplexity` `%FormattingChanges`.
+
+# Principal Component Analysis (PCA) 
+
+The Principal Component Analysis (PCA) is based on a correlation matrix. To avoid bias due to distribution of the data, we use the rank transformed data in correlation estimation. 
+
+```{r echo=FALSE}
+options(digits = 3)
+```
+
+
+```{r fig.width=10}
+fit.BIG        <- princomp(R.DAT.rn[,BIG.rn], cor=TRUE)
+
+summary(fit.BIG)
+
+par(mfrow=c(1,1))
+plot(fit.BIG, type = "lines", main = "Number of Components")
+```
+
+
+With the function `PCA()` from the package `FactoMineR`, plot functionality is better. 
+
+```{r}
+#For all metrics
+PCA.BIG     <- PCA(R.DAT.rn[,BIG.rn], graph = FALSE)
+
+library(factoextra)
+
+#pdf('PCA_results_6inch.pdf', width=6, height = 6)
+par(mar = c(1,1,2,0.1))
+fviz_pca_var(PCA.BIG, col.var="cos2", labelsize= 5, gradient.cols = c("#C0F228", "#009999", "#000099"), repel = TRUE, title = "")
+#dev.off()
+
+```
+
+This figure shows the two dimensional output from the principal component analysis for each communication approach, which covers 56.1% (38.9% + 17.2%) of the total variance of our data. The arrows represent the weights of each variable in the respective principal component and its color represents the square cosine (cos2). The square cosine represents the share of original variation in the variable that is retained in the dimensionality reduction. The longer the arrow, the larger is the share of a variable’s variance. Arrows pointing to the same direction have a large share of common variance and can be assumed to belong to the same group.
+
+This figure suggests to classify the confounding variables into four groups (merge scenario size, merge conflict size, social activity, and integrator's prior knowledge/type of change). The arrows representing `#Chunks`, `#Files`, and `#LoC` point to the same direction; they represent
+the size of a merge scenario. Pointing to another direction, `#ConfLoC`, `#ConfFiles`, and `#ConfChunks` represent the merge conflict size. The `#Devs` point to a third direction and, hence, we call it social activity. The factors `CodeComplexity`, `%FormattingChanges`, and `%IntegratorKnowledge` compose the fourth group, which we named integrator’s prior knowledge/type of change.
+
+# Multiple Regression Model
+
+Multiple linear regression is used to predict a dependent variable (y) - also called outcome variable - on the basis of multiple distinct independent variables (x) - also called predictor variables. The following equation represents a multiple linear regression model:
+
+```y = b0 + b1*x1 + b2*x2 + b3*x3 + ... + bn*xn```
+
+The “b” values are called the regression weights (or beta coefficients). They measure the association between the predictor variable and the outcome variable. “b_j” can be interpreted as the average effect on y of a one unit increase in “x_j”, holding all other predictors fixed [James:2014].
+
+[James:2014] James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2014. An Introduction to Statistical Learning: With Applications in R. Springer Publishing Company, Incorporated.
+
+
+```{r}
+
+full.model <- lm(formula = `#SecondsToMerge` ~ `#Files` + `#ConfFiles` + `#Chunks` + `#ConfChunks` + `#Devs` + `#LoC` + `#ConfLoC`+ `CodeComplexity` + `%IntegratorKnowledge` + `%FormattingChanges`, data = R.DAT.rn)
+summary(full.model)
+
+simplest.model <- lm(formula = `#SecondsToMerge` ~ `#Devs` + `#LoC` + `#ConfLoC`+ `CodeComplexity`, data = R.DAT.rn)
+summary(simplest.model)
+
+balanced.model <- lm(formula = `#SecondsToMerge` ~ `#Chunks` + `#ConfChunks` + `#Devs` + `#LoC` + `CodeComplexity`, data = R.DAT.rn)
+summary(balanced.model)
+
+lm.fit <- lm(formula = `#SecondsToMerge` ~ `#Chunks` + `#ConfChunks` + `#Devs` + `#LoC` + `CodeComplexity`, data = R.DAT.rn)
+
+#get_mse(lm.fit)
+
+
+# checking if the simplified model covers all the variance that the full model covers 
+anova(simplest.model, full.model)
+
+# checking if the simplified model covers all the variance that the full model covers 
+anova(simplest.model, balanced.model)
+
+# checking if the partial model covers all the variance that the full model covers
+anova(balanced.model, full.model)
+
+```
+
+For a given the independent variable (predictor), the t-statistic evaluates whether or not there is significant association between the predictor and the independent variable (outcome variable), that is whether the beta coefficient of the predictor is significantly different from zero.
+
+It can be seen that, changing in `#Devs`, `#LoC`, `#ConfLoC`, and `CodeComplexity` variables are significantly associated to the time (in seconds) - `#SecondsToMerge` - to solve the merge conflicts. The most interested point here is that increasing `#Devs`, `#LoC`, `#ConfLoC` also increases the time to resolve merge conflicts, however, for  to `CodeComplexity` the relationship is oposite. In other words, increasing the `CodeComplexity` of conflicting Chunks leads to less time to resolve merge conflicts.
+
+For a given predictor variable, the coefficient (b) can be interpreted as the average effect on y of a one unit increase in predictor, holding all other predictors fixed. For example, Adding 1,000 LoC in the merge scenario is associated with an increase in time by approximately 293 seconds or 5 minutes to solve the merge conflicts, for a fixed amount of `#ConfChunks`, `#Chunks`, `#Devs`, and `CodeComplexity`, on average.
+
+R-squared is a statistical measure of how close the data are to the fitted regression line. It is also known as the coefficient of determination, or the coefficient of multiple determination for multiple regression. In multiple linear regression, the R-squared (R2) represents the correlation coefficient between the observed values of the outcome variable (y) and the fitted (i.e., predicted) values of y. For this reason, the value of R will always be positive and will range from zero to one. R2 represents the proportion of variance, in the outcome variable y, that may be predicted by knowing the value of the x variables. An R2 value close to 1 indicates that the model explains a large portion of the variance in the outcome variable.
+
+Examine the F-statistic and the associated p-value, at the bottom of model summary. In our example, it can be seen that p-value of the F-statistic is < 2.2e-16, which is highly significant. This means that, at least, one of the predictor variables is significantly related to the outcome variable.
+
+Anova (analysis of variance) - The p-value is not significant, so, this means that adding other variables we are not adding relevant information to the regression model.
+
+```{r echo=FALSE}
+confint(full.model)
+```
+# Effect Size
+
+The code bellow compute the effect size 
+
+```{r echo=TRUE}
+effectsize::cohens_f(balanced.model)
+
+#chisq.test(balanced.model)
+
+#effectsize(balanced.model, type=NULL)
+
+anova_stats(balanced.model)
+
+anova_stats(full.model)
+
+anova_stats(simplest.model)
+
+```
+
+
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
