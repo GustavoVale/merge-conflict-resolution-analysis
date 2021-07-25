@@ -1119,3 +1119,20 @@ Table 1 presents an overview of the subject projects. There we can see the subje
 </tr>
 </tbody>
 </table>
+
+
+# Subject Projects Demographics
+
+Here we only show data for the target merge scenarios for subject projects. Therefore, for an overview of the demographics of a subject project navigate through its URL found above in the table.
+
+![Merge scenarios demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/ms-dist.jpeg)
+
+![Conflicting merge scenarios demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/conf-ms-dist.jpeg)
+
+![Files demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/files-dist.jpeg)
+
+![Chunks demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/chunks-dist.jpeg)
+
+![Commits demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/commits-dist.jpeg)
+
+![Developers demographics](https://github.com/GustavoVale/merge-conflict-resolution-analysis/blob/gh-pages/demographics/devs-dist.jpeg)
