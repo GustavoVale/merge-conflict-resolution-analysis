@@ -80,11 +80,28 @@ li {margin-bottom:8px }
    </table>
   
   <h3>Survey versions</h3>
-  <a href="./surveys/Survey-v1.pdf">Initial version</a>
-  <a href="./surveys/Survey-v1.pdf">Final version</a>
+  <ul>
+    <li>
+      <a href="./surveys/Survey-v1.pdf">Initial version</a>
+    </li>
+    <li>
+      <a href="./surveys/Survey-v1.pdf">Final version</a>
+    </li>
+  </ul>
 
   <h3>Mapping from final version to initial version</h3>
-  TODO: add mapping
+  <p> The initial version consists of 6 sections named <i>Introduction</i>, <i>Background</i>, <i>Contribution style</i>, <i>Linking Social and Technical Assets</i> <i>Merge Conflict Resolution</i>, and <i>Email information and Thanks</i>. The final version consists of 3 sections (<i>Introduction</i>, <i>Merge Conflict Resolution</i>, and <i>Email information and Thanks</i>). The other three sections were excluded.</p> 
+
+  <p>The merge conflict resolution section is mapped as follows: </p>
+  <ul>
+    <li>Open-ended question: "<i>Which metrics do you think that can automatically measure the difficulty of resolving a merge conflict?</i>" became "<i>How do you think someone could estimate how hard a merge conflict is?</i>"</li>
+    <li>Close-ended question: "<i>Do you agree that time is normally a good metric to measure the difficulty of a task? In other words, the more time someone needs to complete a task, the more difficult the task is.</i>" became "<i>The more time it takes to resolve a conflict, the more difficult the conflict.</i>"</li>
+    <li>Close-ended question: "<i>In merge scenarios with conflicts, do you agree that the time between the last commit in the working branch and the merge commit is often used to resolve the conflicts?</i>" became "<i>I merge my changes right after addressing an issue.</i>"</li>
+    <li>Close-ended question: "<i>Do you normally merge your changes after finishing to address an issue (e.g., developing a new feature or fixing a bug)</i>" became "<i>I resolve merge conflicts right after they occur.</i>"</li>
+    <li>Close-ended question: "<i>Do you agree that you often have to look at non-conflicting code to resolve merge conflicts?</i>" became "<i>I look at non-conflicting changes to resolve conflicts.</i>"</li>
+    <li>Close-ended question: "<i>Do you agree that you often have to change non-conflicting code to resolve merge conflicts?</i>" became "<i>I change non-conflicting code to resolve merge conflicts and avoid introducing unexpected behavior to the project.</i>"</li>
+    <li>Open-ended question: "<i>If you wish, add a commentary about of your experience of dealing with merge conflicts.</i>" was added in the final version.</li>
+  </ul>
 
 </body>
 </html>
