@@ -1,4 +1,4 @@
-#Subject Projects Overview
+# Subject Projects Overview
 
 Table 1 presents an overview of the subject projects. There we can see the subject project id, name, URL, main programming language, the number of stars, the number of merge scenarios, the number of the filter that excluded the project, the domain the project was classified, and the type of contribution rule. Despite we have mined the subject projects until November 2019, we updated the number of GitHub stars 10th of May.  The four filter are:  (i) projects that do not have a programming language classified as the main language (i.e., the main file extension), (ii) projects with less than two commits per month in the last six months, (iii) projects in which it was not possible to reconstruct the majority of the merge scenarios, and (iv) projects with no merge conflicts. For details on filter (iii) look at section 3.3 of the paper.
 
